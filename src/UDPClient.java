@@ -24,14 +24,15 @@ public class UDPClient extends Data implements Opcoes {
 	
 	private static void fazerPerguntas() {
 		//TODO: tratar as perguntas
-		String pergunta1 = Data.receberDados();
-		System.out.println(pergunta1);
-		String opcaoA = Data.receberDados();
-		System.out.println("a - " + opcaoA);
-		String opcaoB = Data.receberDados();
-		System.out.println("b - " + opcaoB);
-		String opcaoC = Data.receberDados();
-		System.out.println("c - " + opcaoC);
+		String dados = Data.receberDados();
+		String[] pergunta = dados.split("#");
+		System.out.println(pergunta[0]);
+
+		System.out.println("a - " + pergunta[1]);
+
+		System.out.println("b - " + pergunta[2]);
+
+		System.out.println("c - " + pergunta[3]);
 	}
 
 	public static int menuInicial() {
