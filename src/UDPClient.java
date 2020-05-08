@@ -21,21 +21,53 @@ public class UDPClient extends Data implements Opcoes {
 		Data.enviarDados(dificuldade);
 		fazerPerguntas();
 	}
-	
+
 	private static void fazerPerguntas() {
-		//TODO: tratar as perguntas
-		String dados = Data.receberDados();
-		String[] pergunta = dados.split("#");
-		System.out.println(pergunta[0]);
-
-		System.out.println("a - " + pergunta[1]);
-
-		System.out.println("b - " + pergunta[2]);
-
-		System.out.println("c - " + pergunta[3]);
+		for (int i = 0; i < 3; i++) {
+			String[] pergunta = solicitarPerguntaAoServidor();
+			mostrarPerguntaEOpcoes(pergunta);
+			String resposta = capturarRespostaDoUsuario(pergunta);
+			validarResposta(resposta);
+		}
 	}
 
-	public static int menuInicial() {
+	private static void mostrarPerguntaEOpcoes(String[] pergunta) {
+		System.out.println(pergunta[QUESTAO]);
+		System.out.println("a - " + pergunta[OPCAO_A]);
+		System.out.println("b - " + pergunta[OPCAO_B]);
+		System.out.println("c - " + pergunta[OPCAO_C]);
+	}
+
+	private static String[] solicitarPerguntaAoServidor() {
+		String dados = Data.receberDados(); // recebe a quantidade de perguntas
+		String[] pergunta = dados.split(DELIMITADOR);
+		return pergunta;
+	}
+
+	private static void validarResposta(String resposta) {
+		Data.enviarDados(resposta);
+		String resultado = Data.receberDados();
+		System.out.println(resultado);
+	}
+
+	private static String capturarRespostaDoUsuario(String[] pergunta) {
+		Scanner scanner = new Scanner(System.in);
+		String resposta = scanner.next();
+		while (true) {
+			if (resposta.equals("a")) {
+				return pergunta[OPCAO_A];
+			} else if (resposta.equals("b")) {
+				return pergunta[OPCAO_B];
+			} else if (resposta.equals("c")) {
+				return pergunta[OPCAO_C];
+			} else {
+				System.out.println("Opção incorreta, escolha 'a' 'b' ou 'c'.");
+				resposta = scanner.next();
+			}
+		}
+	}
+
+	private static int menuInicial() {
 		System.out.println("------Bem Vindo------");
 		System.out.println("1 - Jogar");
 		System.out.println("2 - Sair");
@@ -44,7 +76,7 @@ public class UDPClient extends Data implements Opcoes {
 		return opcao;
 	}
 
-	public static String selecionarDificuldade() {
+	private static String selecionarDificuldade() {
 		System.out.println("Informe o nível de dificuldade (1 - Normal, 2 - Dificil)");
 		Scanner scanner = new Scanner(System.in);
 		String dificuldade = scanner.next();

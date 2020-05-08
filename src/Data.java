@@ -37,7 +37,7 @@ public abstract class Data {
 
 	protected static void enviarDados(String dados) {
 		try {
-			DatagramPacket sendPacket = new DatagramPacket(dados.getBytes(), dados.length());
+			DatagramPacket sendPacket = new DatagramPacket(dados.getBytes(), dados.getBytes().length);
 			clientSocket.send(sendPacket);
 		} catch (IOException e) {
 			// TODO: Tratativa para erro de envio/conexão
