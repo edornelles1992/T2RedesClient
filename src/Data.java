@@ -5,46 +5,81 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
+/**
+ * Classe contendo os métodos de manipulação do socket dos
+ * datagrams no lado do CLIENTE
+ */
 public abstract class Data {
 
 	private static DatagramSocket clientSocket;
 	private final static String endereco = "localhost";
 	private final static Integer porta = 50000;
+	private static Integer timeout = 1500;
 
+	/**
+	 * Cria a conexão do socket com base no endereco e porta configurados.
+	 */
 	protected static void conectarServidor() {
 		try {
+			iniciarSocket();
 			System.out.println("Conectando ao jogo para buscar as perguntas...");
 			clientSocket.connect(InetAddress.getByName(endereco), porta);
 			System.out.println("Conectado com sucesso!");
 		} catch (UnknownHostException e) {
 			System.out.println("Erro ao conectar no servidor!");
-			// TODO: Tratativa para erro de conexão
+			System.out.println("Tentando conectar novamente...");
+			conectarServidor();
+		}
+	}
+
+	/**
+	 * Fecha a conexão e o socket.
+	 */
+	protected static void desconectarServidor() {
+		System.out.println("Desconectando da partida...");
+		clientSocket.close();
+		clientSocket.disconnect();
+		System.out.println("Desconectando com sucesso!");
+	}
+
+	/**
+	 * Inicia o socket atribuindo um limite de tempo (timeout
+	 * para receber dados.
+	 */
+	private static void iniciarSocket() {
+		try {
+			clientSocket = new DatagramSocket();
+			clientSocket.setSoTimeout(timeout);
+		} catch (SocketException e) {
+			System.out.println("Erro ao iniciar socket");
 			e.printStackTrace();
 		}
 	}
 
-	protected static void desconectarServidor() {
-		clientSocket.disconnect();
-	}
-
-	protected static void iniciarSocket() throws SocketException {
-		clientSocket = new DatagramSocket();
-	}
-
-	protected static void fecharSocket() {
-		clientSocket.close();
-	}
-
+	/**
+	 * Recebe os dados a ser enviados e envia pelo socket já
+	 * pré configurado. Caso ocorra algum erro no envio a exceção
+	 * é capturada e fica tenta enviar novamente até obter sucesso.
+	 * @param dados
+	 */
 	protected static void enviarDados(String dados) {
 		try {
 			DatagramPacket sendPacket = new DatagramPacket(dados.getBytes(), dados.getBytes().length);
 			clientSocket.send(sendPacket);
 		} catch (IOException e) {
-			// TODO: Tratativa para erro de envio/conexão
-			e.printStackTrace();
+			System.out.println("Houve um problema na comunicação com o servidor...");
+			System.out.println("Tentando restabelecer a conexão...");
+			enviarDados(dados);
 		}
 	}
 
+	/**
+	 * Aguarda o servidor retornar os dados solicitados e retorna
+	 * os dados em caso de sucesso. Caso o tempo de espera dos dados demore
+	 * mais que o timeout configurado ele avisa em tela para o usuário que está
+	 * com problema para receber os dados e fica em loop até conseguir receber os dados.
+	 * @return dado recebido
+	 */
 	protected static String receberDados() {
 		try {
 			byte[] receiveData = new byte[1024];
@@ -52,9 +87,9 @@ public abstract class Data {
 			clientSocket.receive(receiveDatagram);
 			return new String(receiveDatagram.getData());
 		} catch (IOException e) {
-			// TODO: Tratativa para erro de envio/conexão
-			e.printStackTrace();
-			return null;
+			System.out.println("Houve um problema na comunicação com o servidor...");
+			System.out.println("Tentando restabelecer comunicação...");
+			return receberDados();
 		}
 	}
 
