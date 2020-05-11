@@ -2,6 +2,8 @@ import java.util.Scanner;
 
 public class UDPClient extends Data implements Opcoes {
 
+	private static String dificuldade;
+	
 	/**
 	 * Menu inicial que da a opção de jogar ou de sair do jogo.
 	 * Seleciona a dificuldade para iniciar a partida conectando ao servidor.
@@ -13,7 +15,7 @@ public class UDPClient extends Data implements Opcoes {
 			if (opcao != JOGAR) { // sair do jogo
 				break;
 			} else { // jogar
-				gerenciarPartida(selecionarDificuldade());
+				gerenciarPartida();
 			}
 		}
 		System.out.println("------Obrigado por Jogar! Até Mais!------");
@@ -21,15 +23,17 @@ public class UDPClient extends Data implements Opcoes {
 
 	/**
 	 * Gerencia o fluxo sequencial da partida:
-	 * 1 - Inicia a conexão com o servidor.
-	 * 2 - Envia o nivel de dificuldade escolhido para o serviddor.
-	 * 3 - Executa o fluxo das trocas de perguntas e respostas entre cliente/servidor.
-	 * 4 - Recebe o resultado para mostrar ao usuário.
-	 * 5 - Finaliza a conexão com o servidor
-	 * @param dificuldade
+	 * 1 - Seleciona Dificuldade.
+	 * 2 - Inicia a conexão com o servidor.
+	 * 3 - Envia o nivel de dificuldade escolhido para o serviddor.
+	 * 4 - Executa o fluxo das trocas de perguntas e respostas entre cliente/servidor.
+	 * 5 - Recebe o resultado para mostrar ao usuário.
+	 * 6 - Finaliza a conexão com o servidor
 	 */
-	private static void gerenciarPartida(String dificuldade) {
-		Data.conectarServidor();
+	private static void gerenciarPartida() {
+		selecionarDificuldade();
+		Data.conectarServidor(Data.porta1);
+		System.out.println("Conectado com sucesso!");
 		Data.enviarDados(dificuldade);
 		fazerPerguntas();
 		resultado();
@@ -73,11 +77,22 @@ public class UDPClient extends Data implements Opcoes {
 
 	/**
 	 * Recebe a pergunta do servidor e quebra os dados em um array,
-	 * separando a pergunta das opções no array pelo delimitador.
-	 * @return
+	 * separando a pergunta das opções no array pelo delimitador. 
+	 * Também valida se não ocorreu um erro de falta de slot no servidor.
+	 * Caso sim, ele fica em looping até conseguir um slot vago no servidor.
+	 * @return os dados necessários para efetuar a pergunta ao usuário
 	 */
 	private static String[] receberPerguntaDoServidor() {
 		String dados = Data.receberDados(); // recebe a quantidade de perguntas
+		while (dados.equals("ERRO: Slot Ocupado")) {
+			try {
+				Thread.sleep(1500l); //da uma folga no looping pra poder acompanhar as tentativas...
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			Data.enviarDados(dificuldade);
+			dados = Data.receberDados();
+		}
 		String[] pergunta = dados.split(DELIMITADOR);
 		return pergunta;
 	}
@@ -136,15 +151,13 @@ public class UDPClient extends Data implements Opcoes {
 
 	/**
 	 * Solicita ao usuário a dificuldade que ele quer jogar, aguarda ele 
-	 * informar e retorna o valor escolhido.
+	 * informar e armazena a difuldade escolhida.
 	 * @return dificuldade selecionada
 	 */
-	private static String selecionarDificuldade() {
+	private static void selecionarDificuldade() {
 		System.out.println("Informe o nível de dificuldade (1 - Normal, 2 - Dificil)");
 		Scanner scanner = new Scanner(System.in);
-		String dificuldade = scanner.next();
-		System.out.println(dificuldade);
-		return dificuldade;
+		dificuldade = scanner.next();	
 	}
 
 	public static void main(String args[]) throws Exception {

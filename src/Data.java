@@ -13,22 +13,21 @@ public abstract class Data {
 
 	private static DatagramSocket clientSocket;
 	private final static String endereco = "localhost";
-	private final static Integer porta = 50000;
+	protected final static Integer porta1 = 40000;
+	protected final static Integer porta2 = 50000;
 	private static Integer timeout = 1500;
 
 	/**
 	 * Cria a conexão do socket com base no endereco e porta configurados.
 	 */
-	protected static void conectarServidor() {
+	protected static void conectarServidor(Integer porta) {
 		try {
 			iniciarSocket();
-			System.out.println("Conectando ao jogo para buscar as perguntas...");
 			clientSocket.connect(InetAddress.getByName(endereco), porta);
-			System.out.println("Conectado com sucesso!");
 		} catch (UnknownHostException e) {
 			System.out.println("Erro ao conectar no servidor!");
 			System.out.println("Tentando conectar novamente...");
-			conectarServidor();
+			conectarServidor(porta);
 		}
 	}
 
@@ -78,6 +77,7 @@ public abstract class Data {
 	 * os dados em caso de sucesso. Caso o tempo de espera dos dados demore
 	 * mais que o timeout configurado ele avisa em tela para o usuário que está
 	 * com problema para receber os dados e fica em loop até conseguir receber os dados.
+	 * Retorna os dados solicitados OU um erro configurado de servidor cheio.
 	 * @return dado recebido
 	 */
 	protected static String receberDados() {
@@ -85,11 +85,28 @@ public abstract class Data {
 			byte[] receiveData = new byte[1024];
 			DatagramPacket receiveDatagram = new DatagramPacket(receiveData, receiveData.length);
 			clientSocket.receive(receiveDatagram);
-			return new String(receiveDatagram.getData());
+			return tratarResposta(new String(receiveDatagram.getData()).trim());
 		} catch (IOException e) {
 			System.out.println("Houve um problema na comunicação com o servidor...");
 			System.out.println("Tentando restabelecer comunicação...");
 			return receberDados();
+		}
+	}
+
+	/**
+	 * Recebe os dados vindo do servidor e valida se foi recebido o erro de slot ocupado.
+	 * Caso ocorra erro ele valida em qual porta foi a tentiva e tenta conectar no outro slot.
+	 * Em caso de sucesso retorna os dados recebidos.
+	 * @param dados
+	 * @return dados recebidos
+	 */
+	private static String tratarResposta(String dados) {
+		if (dados.equals("ERRO: Slot Ocupado")) {
+			conectarServidor(clientSocket.getPort() == porta1 ? porta2 : porta1); //tenta conectar no outro slot
+			System.out.println("Procurando vaga para continuar...");
+			return dados; //retorna o erro para poder enviar a solicitação novamente.
+		} else {
+			return dados; //retorna os dados recebidos
 		}
 	}
 
