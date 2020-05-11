@@ -6,7 +6,7 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 
 /**
- * Classe contendo os métodos de manipulação do socket dos
+ * Classe contendo os métodos de manipulação do socket e dos
  * datagrams no lado do CLIENTE
  */
 public abstract class Data {
