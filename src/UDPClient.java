@@ -46,6 +46,16 @@ public class UDPClient extends Data implements Opcoes {
 	 */
 	private static void resultado(){
 		String resultado = Data.receberDados();
+		while (resultado.equals("ERRO: Slot Ocupado") || resultado.equals("ERRO")) {
+			try {
+				Thread.sleep(1500l); //da uma folga no looping pra poder acompanhar as tentativas...
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			Data.enviarDados(dificuldade);
+			resultado = Data.receberDados();
+		}
+		
 		System.out.println("Fim das perguntas, total de pontos: " + resultado);
 		System.out.println("Retornando para o menu inicial...");
 	}
@@ -84,7 +94,7 @@ public class UDPClient extends Data implements Opcoes {
 	 */
 	private static String[] receberPerguntaDoServidor() {
 		String dados = Data.receberDados(); // recebe a quantidade de perguntas
-		while (dados.equals("ERRO: Slot Ocupado")) {
+		while (dados.equals("ERRO: Slot Ocupado") || dados.equals("ERRO") || dados.split(DELIMITADOR).length == 1) {
 			try {
 				Thread.sleep(1500l); //da uma folga no looping pra poder acompanhar as tentativas...
 			} catch (InterruptedException e) {
@@ -106,6 +116,15 @@ public class UDPClient extends Data implements Opcoes {
 	private static void validarResposta(String resposta) {
 		Data.enviarDados(resposta);
 		String resultado = Data.receberDados();
+		while (resultado.equals("ERRO: Slot Ocupado") || resultado.equals("ERRO")) {
+			try {
+				Thread.sleep(1500l); //da uma folga no looping pra poder acompanhar as tentativas...
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			Data.enviarDados(dificuldade);
+			resultado = Data.receberDados();
+		}
 		System.out.println(resultado);
 	}
 

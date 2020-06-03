@@ -89,7 +89,7 @@ public abstract class Data {
 		} catch (IOException e) {
 			System.out.println("Houve um problema na comunicação com o servidor...");
 			System.out.println("Tentando restabelecer comunicação...");
-			return receberDados();
+			return "ERRO";
 		}
 	}
 
