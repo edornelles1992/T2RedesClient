@@ -1,6 +1,7 @@
-import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.InputStreamReader;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -9,26 +10,14 @@ import java.nio.file.Files;
 public class UDPClient extends Data {
 
 	public static void enviarArquivo(File file) {
-		try {
-			// cria o stream do teclado
-			BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
+		try {	
+			Data.conectarServidor();
+			byte[] documento = Files.readAllBytes(file.toPath());	
+			//TODO: quebrar arquivo em pacotes (512 -> Data.dataSize)
+			Pacote pacote = new Pacote();
+		//	pacote.dados = documento;
+			Data.enviarDados(pacote);
 
-			// declara socket cliente
-			DatagramSocket clientSocket = new DatagramSocket();
-
-			// obtem endereço IP do servidor com o DNS
-			InetAddress IPAddress = InetAddress.getByName("localhost");
-
-			byte[] documento = Files.readAllBytes(file.toPath());
-
-			// cria pacote com o dado, o endere�o do server e porta do servidor
-			DatagramPacket sendPacket = new DatagramPacket(documento, documento.length, IPAddress, 50000);
-
-			// envia o pacote
-			clientSocket.send(sendPacket);
-			System.out.println("Arquivo enviado com sucesso!");
-			// fecha o cliente
-			clientSocket.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
