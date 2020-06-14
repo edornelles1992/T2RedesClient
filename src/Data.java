@@ -78,7 +78,7 @@ public abstract class Data implements Parametros {
 
 	protected static Pacote receberDados() {
 		try {
-			byte[] receiveData = new byte[packetSize];
+			byte[] receiveData = new byte[1024];
 			DatagramPacket receiveDatagram = new DatagramPacket(receiveData, receiveData.length);
 			clientSocket.receive(receiveDatagram);
 			byte[] recBytes = receiveDatagram.getData();

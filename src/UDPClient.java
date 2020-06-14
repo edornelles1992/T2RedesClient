@@ -10,14 +10,10 @@ public class UDPClient extends Data {
 		try {
 			Data.conectarServidor();
 			byte[] documento = Files.readAllBytes(file.toPath());
-			if (documento.length > Data.dataSize) {
-				List pacotes = quebrarArquivo(documento);
-			} else {
-				Pacote pacote = new Pacote();
-				pacote.dados = documento;
-				Data.enviarDados(pacote);
+			List<Pacote> pacotes = quebrarArquivo(documento);
+			for (Pacote p : pacotes) {
+				Data.enviarDados(p);
 			}
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -27,12 +23,11 @@ public class UDPClient extends Data {
 	 * Quebra o arquivo em pacotes criando uma lista de Pacotes
 	 */
 	private static List<Pacote> quebrarArquivo(byte[] documento) {
-		Integer qtdPacotes = arredondarCima(documento);
 		ArrayList<Pacote> lista = new ArrayList<>();
 		for (int i = 0; i < documento.length; i += Data.dataSize) {
 			Pacote pacote = new Pacote();
 			byte[] parte;
-			if ((i + Data.dataSize) > documento.length) { //tamanho parte final > dataSize
+			if ((i + Data.dataSize) > documento.length) { // tamanho parte final > dataSize
 				parte = pegarParteDados(i, documento.length, documento);
 				pacote.size = documento.length - i;
 				pacote.ultimo = 1;
@@ -48,8 +43,8 @@ public class UDPClient extends Data {
 	}
 
 	/**
-	 * Pega a parte selecionada do array e passa para um novo array separado com o tamanho
-	 * exato daquela parte.
+	 * Pega a parte selecionada do array e passa para um novo array separado com o
+	 * tamanho exato daquela parte.
 	 */
 	private static byte[] pegarParteDados(int posIni, int posFim, byte[] documento) {
 		byte[] dados = new byte[posFim - posIni];
@@ -59,11 +54,5 @@ public class UDPClient extends Data {
 			cont++;
 		}
 		return dados;
-	}
-	
-	private static Integer arredondarCima(byte[] documento) {
-		double qtd = documento.length / new Double(Data.dataSize);		
-		Integer qtdPacotes = new Integer(new BigDecimal(qtd).setScale(0, BigDecimal.ROUND_UP).toString());
-		return qtdPacotes;
 	}
 }
