@@ -14,13 +14,12 @@ import java.net.UnknownHostException;
  * Classe contendo os métodos de manipulação do socket e dos
  * datagrams no lado do CLIENTE
  */
-public abstract class Data {
+public abstract class Data implements Parametros {
 
 	private static DatagramSocket clientSocket;
 	private final static String endereco = "localhost";
 	protected final static Integer porta1 = 50000;
 	private static Integer timeout = 1500;
-	public static Integer dataSize = 512;
 
 	/**
 	 * Cria a conexão do socket com base no endereco e porta configurados.
@@ -79,7 +78,7 @@ public abstract class Data {
 
 	protected static Pacote receberDados() {
 		try {
-			byte[] receiveData = new byte[dataSize];
+			byte[] receiveData = new byte[packetSize];
 			DatagramPacket receiveDatagram = new DatagramPacket(receiveData, receiveData.length);
 			clientSocket.receive(receiveDatagram);
 			byte[] recBytes = receiveDatagram.getData();
