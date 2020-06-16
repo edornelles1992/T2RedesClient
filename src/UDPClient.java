@@ -4,19 +4,58 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
+
+
 public class UDPClient extends Data {
+
 
 	public static void enviarArquivo(File file) {
 		try {
 			Data.conectarServidor();
 			byte[] documento = Files.readAllBytes(file.toPath());
 			List<Pacote> pacotes = quebrarArquivo(documento);
-			for (Pacote p : pacotes) {
-				Data.enviarDados(p);
-			}
+
+			slowStart(pacotes);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	private static void slowStart(List<Pacote> pacotes) {
+		int initialValue = 1;
+		int index = 1;
+
+		// Send first package
+		enviarPacotes(pacotes, 0, 1);
+
+		while (index < pacotes.size()) {
+			int numeroDePacotes = (int) Math.pow(2, initialValue);
+
+			enviarPacotes(pacotes, index, numeroDePacotes);
+
+			index = index + numeroDePacotes;
+
+			initialValue++;
+		}
+	}
+
+	private static void enviarPacotes(List<Pacote> pacotes, int index, int amount) {
+
+		int size = index + amount;
+		if (size >= pacotes.size()) { size = pacotes.size(); }
+
+		for (int i = index; i < size; i++) {
+			pacotes.get(i).seq = i;
+			Data.enviarDados(pacotes.get(i));
+
+			Pacote pacoteResposta = Data.receberDados();
+
+			if (pacoteResposta.ack == pacotes.get(i).seq) {
+				System.out.println("ACK " + pacoteResposta.ack + ", SEQ: " + pacotes.get(i).seq);
+			}
+		}
+
+		System.out.println("--------");
 	}
 
 	/**

@@ -11,7 +11,7 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 
 /**
- * Classe contendo os métodos de manipulação do socket e dos
+ * Classe contendo os mï¿½todos de manipulaï¿½ï¿½o do socket e dos
  * datagrams no lado do CLIENTE
  */
 public abstract class Data implements Parametros {
@@ -22,7 +22,7 @@ public abstract class Data implements Parametros {
 	private static Integer timeout = 1500;
 
 	/**
-	 * Cria a conexão do socket com base no endereco e porta configurados.
+	 * Cria a conexï¿½o do socket com base no endereco e porta configurados.
 	 */
 	protected static void conectarServidor() {
 		try {
@@ -36,7 +36,7 @@ public abstract class Data implements Parametros {
 	}
 
 	/**
-	 * Fecha a conexão e o socket.
+	 * Fecha a conexï¿½o e o socket.
 	 */
 	protected static void desconectarServidor() {
 		System.out.println("Desconectando da partida...");
@@ -70,8 +70,8 @@ public abstract class Data implements Parametros {
 			DatagramPacket sendPacket = new DatagramPacket(serialized, serialized.length);
 			clientSocket.send(sendPacket);
 		} catch (IOException e) {
-			System.out.println("Houve um problema na comunicação com o servidor...");
-			System.out.println("Tentando restabelecer a conexão...");
+			System.out.println("Houve um problema na comunicaï¿½ï¿½o com o servidor...");
+			System.out.println("Tentando restabelecer a conexï¿½o...");
 			enviarDados(pacote);
 		}
 	}
@@ -98,7 +98,7 @@ public abstract class Data implements Parametros {
 		if (dados.equals("ERRO: Slot Ocupado")) {
 		//	conectarServidor(clientSocket.getPort() == porta1 ? porta2 : porta1); //tenta conectar no outro slot
 			System.out.println("Procurando vaga para continuar...");
-			return dados; //retorna o erro para poder enviar a solicitação novamente.
+			return dados; //retorna o erro para poder enviar a solicitaï¿½ï¿½o novamente.
 		} else {
 			return dados; //retorna os dados recebidos
 		}
