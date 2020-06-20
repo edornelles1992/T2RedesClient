@@ -4,14 +4,11 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
-
-
-public class UDPClient extends Data {
-
+public class UDPClient extends DataClient {
 
 	public static void enviarArquivo(File file) {
 		try {
-			Data.conectarServidor();
+			DataClient.conectarServidor();
 			byte[] documento = Files.readAllBytes(file.toPath());
 			List<Pacote> pacotes = quebrarArquivo(documento);
 
@@ -25,7 +22,7 @@ public class UDPClient extends Data {
 		int initialValue = 1;
 		int index = 1;
 
-		// Send first package
+		//enviar primeiro pacote
 		enviarPacotes(pacotes, 0, 1);
 
 		while (index < pacotes.size()) {
@@ -42,17 +39,18 @@ public class UDPClient extends Data {
 	private static void enviarPacotes(List<Pacote> pacotes, int index, int amount) {
 
 		int size = index + amount;
-		if (size >= pacotes.size()) { size = pacotes.size(); }
+		if (size >= pacotes.size()) {
+			size = pacotes.size();
+		}
 
 		for (int i = index; i < size; i++) {
 			pacotes.get(i).seq = i;
-			Data.enviarDados(pacotes.get(i));
+			DataClient.enviarDados(pacotes.get(i));
 
-			Pacote pacoteResposta = Data.receberDados();
+			Pacote pacoteResposta = DataClient.receberDados();
 
-			if (pacoteResposta.ack == pacotes.get(i).seq) {
-				System.out.println("ACK " + pacoteResposta.ack + ", SEQ: " + pacotes.get(i).seq);
-			}
+			System.out.println("SEQ: " + pacotes.get(i).seq + ", ACK: " + pacoteResposta.ack);
+
 		}
 
 		System.out.println("--------");
@@ -63,17 +61,17 @@ public class UDPClient extends Data {
 	 */
 	private static List<Pacote> quebrarArquivo(byte[] documento) {
 		ArrayList<Pacote> lista = new ArrayList<>();
-		for (int i = 0; i < documento.length; i += Data.dataSize) {
+		for (int i = 0; i < documento.length; i += DataClient.dataSize) {
 			Pacote pacote = new Pacote();
 			byte[] parte;
-			if ((i + Data.dataSize) > documento.length) { // tamanho parte final > dataSize
+			if ((i + DataClient.dataSize) > documento.length) { // tamanho parte final > dataSize
 				parte = pegarParteDados(i, documento.length, documento);
 				pacote.size = documento.length - i;
 				pacote.ultimo = 1;
 			} else {
-				parte = pegarParteDados(i, i + Data.dataSize, documento);
+				parte = pegarParteDados(i, i + DataClient.dataSize, documento);
 				pacote.ultimo = 0;
-				pacote.size = Data.dataSize;
+				pacote.size = DataClient.dataSize;
 			}
 			pacote.dados = parte;
 			lista.add(pacote);
@@ -94,4 +92,5 @@ public class UDPClient extends Data {
 		}
 		return dados;
 	}
+	
 }

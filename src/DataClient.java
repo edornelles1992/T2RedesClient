@@ -9,12 +9,14 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.zip.CRC32;
+import java.util.zip.Checksum;
 
 /**
  * Classe contendo os m�todos de manipula��o do socket e dos
  * datagrams no lado do CLIENTE
  */
-public abstract class Data implements Parametros {
+public abstract class DataClient implements Parametros {
 
 	private static DatagramSocket clientSocket;
 	private final static String endereco = "localhost";
@@ -62,11 +64,8 @@ public abstract class Data implements Parametros {
 
 	protected static void enviarDados(Pacote pacote) {
 		try {
-			ByteArrayOutputStream bStream = new ByteArrayOutputStream();
-			ObjectOutput oo = new ObjectOutputStream(bStream); 
-			oo.writeObject(pacote);
-			oo.close();
-			byte[] serialized = bStream.toByteArray();
+			pacote.valor_crc = calcularCRC32DoPacote(pacote);
+			byte[] serialized = pacoteToByteArray(pacote);
 			DatagramPacket sendPacket = new DatagramPacket(serialized, serialized.length);
 			clientSocket.send(sendPacket);
 		} catch (IOException e) {
@@ -82,9 +81,7 @@ public abstract class Data implements Parametros {
 			DatagramPacket receiveDatagram = new DatagramPacket(receiveData, receiveData.length);
 			clientSocket.receive(receiveDatagram);
 			byte[] recBytes = receiveDatagram.getData();
-			ObjectInputStream iStream = new ObjectInputStream(new ByteArrayInputStream(recBytes));
-			Pacote pacote = (Pacote) iStream.readObject();
-			iStream.close();
+			Pacote pacote  = byteArrayToPacote(recBytes);
 			return pacote;
 		} catch (IOException e) {
 			return receberDados();
@@ -93,6 +90,60 @@ public abstract class Data implements Parametros {
 			return null;
 		}
 	}
+	
+	/**
+	 * Converte o objeto pacote para um byteArray
+	 * @param pacote
+	 * @return
+	 */
+	private static byte[] pacoteToByteArray(Pacote pacote) {
+		try {
+		ByteArrayOutputStream bStream = new ByteArrayOutputStream();
+		ObjectOutput oo = new ObjectOutputStream(bStream);
+		oo.writeObject(pacote);
+		oo.close();
+		return bStream.toByteArray();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	/**
+	 * Converte de byteArray para o objeto pacote.
+	 * @param pacote
+	 * @return
+	 */
+	private static Pacote byteArrayToPacote(byte[] pacote) {
+		try {
+			ObjectInputStream iStream = new ObjectInputStream(new ByteArrayInputStream(pacote));
+			Pacote pacoteObj = (Pacote) iStream.readObject();
+			iStream.close();
+			return pacoteObj;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	protected static long calcularCRC32DoPacote(Pacote pacote) {
+		try {
+		ByteArrayOutputStream bStream = new ByteArrayOutputStream();
+		ObjectOutput oo = new ObjectOutputStream(bStream);
+		oo.writeObject(pacote);
+		oo.close();
+		byte[] serialized = bStream.toByteArray();
+		Checksum checksum = new CRC32();
+		// update the current checksum with the specified array of bytes
+		checksum.update(pacote.dados, 0, pacote.dados.length);		 
+		// get the current checksum value
+		long checksumValue = checksum.getValue();	 		
+		return checksumValue;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return -1;
+		}
+ 	}
 
 	private static String tratarResposta(String dados) {
 		if (dados.equals("ERRO: Slot Ocupado")) {
