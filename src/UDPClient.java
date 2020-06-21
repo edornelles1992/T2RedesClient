@@ -1,5 +1,5 @@
 import java.io.File;
-import java.math.BigDecimal;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,41 +19,34 @@ public class UDPClient extends DataClient {
 	}
 
 	private static void slowStart(List<Pacote> pacotes) {
-		int initialValue = 1;
-		int index = 1;
-
-		//enviar primeiro pacote
-		enviarPacotes(pacotes, 0, 1);
-
+		int expoente = 0;
+		int index = 0;
+		int ackAtual = 1;
+		
 		while (index < pacotes.size()) {
-			int numeroDePacotes = (int) Math.pow(2, initialValue);
+			int numeroDePacotes = (int) Math.pow(2, expoente);
 
-			enviarPacotes(pacotes, index, numeroDePacotes);
+			try {
+				int ack = enviarPacotes(pacotes, index, numeroDePacotes, ackAtual);
+				ackAtual = ack;
+			} catch (IOException e) {
+				// recomeça o slowStart caso tenha falhado alguma confirmação...
+				if (e.getMessage().startsWith("timeout")) {// erro de timeout
+					// recomeça apartir do pacote que falhou..
+					index = pacoteFalhadoIndex;
+					expoente = 0;
+					continue;
+				} else { //erro de 3 acks duplicados
+					index = ackDuplicadoIndex;
+					expoente = 0;
+					continue;
+				}
+			}
 
 			index = index + numeroDePacotes;
-
-			initialValue++;
+			expoente++;
 		}
-	}
-
-	private static void enviarPacotes(List<Pacote> pacotes, int index, int amount) {
-
-		int size = index + amount;
-		if (size >= pacotes.size()) {
-			size = pacotes.size();
-		}
-
-		for (int i = index; i < size; i++) {
-			pacotes.get(i).seq = i;
-			DataClient.enviarDados(pacotes.get(i));
-
-			Pacote pacoteResposta = DataClient.receberDados();
-
-			System.out.println("SEQ: " + pacotes.get(i).seq + ", ACK: " + pacoteResposta.ack);
-
-		}
-
-		System.out.println("--------");
+		System.out.println("----FIM DO ENVIO DO ARQUIVO----");
 	}
 
 	/**
@@ -92,5 +85,5 @@ public class UDPClient extends DataClient {
 		}
 		return dados;
 	}
-	
+
 }
