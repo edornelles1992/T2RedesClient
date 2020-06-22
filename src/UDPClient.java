@@ -2,27 +2,43 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class UDPClient extends DataClient {
 
+	public static String arquivoHashEnviado = null;
+
+	/**
+	 * Gerencia o fluxo de envio do arquivo. 1 - Recebe o arquivo selecionado pelo
+	 * usuário e conecta no servidor 2 - Transforma o arquivo no array de bytes e
+	 * quebra em pacotes de 512bytes 3 - inicia a transmissão utilizando o algoritmo
+	 * de slowstart 4 - Finaliza fazendo o md5sum para informar o hash do arquivo
+	 * selecionado na tela.
+	 */
 	public static void enviarArquivo(File file) {
 		try {
 			DataClient.conectarServidor();
-			byte[] documento = Files.readAllBytes(file.toPath());
-			List<Pacote> pacotes = quebrarArquivo(documento);
-
+			byte[] arquivo = Files.readAllBytes(file.toPath());
+			List<Pacote> pacotes = quebrarArquivo(arquivo);
 			slowStart(pacotes);
+			arquivoHashEnviado = md5sum(Arrays.toString(arquivo));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
+	/**
+	 * Implementação do slowStart: inicia a transmissão com um pacote e vai
+	 * crescendo exponencialmente. Duas condições reiniciam o slowstart: timeout ou
+	 * ack duplicado 3 vezes, ambos são lançados como exceções e reiniciam a
+	 * contagem do algoritmo apartir do pacote em que houve a falha.
+	 */
 	private static void slowStart(List<Pacote> pacotes) {
 		int expoente = 0;
 		int index = 0;
 		int ackAtual = 1;
-		
+
 		while (index < pacotes.size()) {
 			int numeroDePacotes = (int) Math.pow(2, expoente);
 
@@ -36,7 +52,7 @@ public class UDPClient extends DataClient {
 					index = pacoteFalhadoIndex;
 					expoente = 0;
 					continue;
-				} else { //erro de 3 acks duplicados
+				} else { // erro de 3 acks duplicados
 					index = ackDuplicadoIndex;
 					expoente = 0;
 					continue;

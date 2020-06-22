@@ -8,17 +8,20 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 /**
- * Main 
+ * UI simples com um botão para submeter o arquivo, label para informar o md5sum
+ * e um texto informando o arquivo enviado.
  */
 public class ClientUploadUI extends JPanel implements ActionListener {
 	private static final long serialVersionUID = 1L;
 	static private final String newline = "\n";
 	JButton openButton;
+	JLabel labelHash;
 	JTextArea log;
 	JFileChooser fc;
 
@@ -27,7 +30,7 @@ public class ClientUploadUI extends JPanel implements ActionListener {
 
 		// Create the log first, because the action listeners
 		// need to refer to it.
-		log = new JTextArea(5, 20);
+		log = new JTextArea(6, 30);
 		log.setMargin(new Insets(5, 5, 5, 5));
 		log.setEditable(false);
 		JScrollPane logScrollPane = new JScrollPane(log);
@@ -36,13 +39,18 @@ public class ClientUploadUI extends JPanel implements ActionListener {
 
 		openButton = new JButton("Selecionar Arquivo..");
 		openButton.addActionListener(this);
+
+		labelHash = new JLabel("Hash");
+		labelHash.setText("md5Sum: ");
 		// For layout purposes, put the buttons in a separate panel
 		JPanel buttonPanel = new JPanel(); // use FlowLayout
 		buttonPanel.add(openButton);
+		buttonPanel.add(labelHash);
 
 		// Add the buttons and the log to this panel.
 		add(buttonPanel, BorderLayout.PAGE_START);
-		add(logScrollPane, BorderLayout.CENTER);
+		add(labelHash, BorderLayout.CENTER);
+		add(logScrollPane, BorderLayout.PAGE_END);
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -56,6 +64,7 @@ public class ClientUploadUI extends JPanel implements ActionListener {
 				log.append("Arquivo Selecionado: " + file.getName() + "." + newline);
 				UDPClient.enviarArquivo(file); // Pega o arquivo selecionado e envia para UDPClient enviar para o
 												// servidor...
+				labelHash.setText("md5Sum: " + UDPClient.arquivoHashEnviado);
 			} else {
 				log.append("Comando de abrir cancelado." + newline);
 			}
@@ -76,7 +85,7 @@ public class ClientUploadUI extends JPanel implements ActionListener {
 
 	public static void createAndShowGUI() {
 		// Create and set up the window.
-		JFrame frame = new JFrame("ClientUploadUI");
+		JFrame frame = new JFrame("Upload de Arquivo");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		// Add content to the window.
